@@ -3,6 +3,7 @@ class FlappyCat {
         this.cat = document.getElementById('cat');
         this.gameContainer = document.querySelector('.game-container');
         this.scoreElement = document.getElementById('score');
+        this.maxScoreElement = document.getElementById('maxScore');
         this.startMessage = document.getElementById('start-message');
         this.gameOverMessage = document.getElementById('game-over');
         
@@ -11,13 +12,14 @@ class FlappyCat {
         this.velocity = 0;
         this.position = 300;
         this.score = 0;
+        this.maxScore = sessionStorage.maxScore
         this.gameStarted = false;
         this.gameOver = false;
         this.pipes = [];
         this.pipeGap = 150;
         this.pipeWidth = 60;
-        this.pipeInterval = 1700;
-        
+        this.pipeInterval = 2000;
+        this.pipeGenerator = null;
         this.bindEvents();
     }
 
@@ -64,7 +66,6 @@ class FlappyCat {
     update() {
         if (!this.gameStarted || this.gameOver) return;
 
-      
         this.velocity += this.gravity;
         this.position += this.velocity;
         this.cat.style.top = `${this.position}px`;
@@ -114,13 +115,13 @@ class FlappyCat {
         const topPipe = document.createElement('div');
         topPipe.className = 'pipe top-pipe';
         topPipe.style.height = `${height}px`;
-        topPipe.style.left = '400px';
+        topPipe.style.left = '800px';
         topPipe.style.top = '0px';
 
         const bottomPipe = document.createElement('div');
         bottomPipe.className = 'pipe bottom-pipe';
         bottomPipe.style.height = `${containerHeight - height - this.pipeGap}px`;
-        bottomPipe.style.left = '400px';
+        bottomPipe.style.left = '800px';
         bottomPipe.style.bottom = '0px';
 
 
@@ -132,14 +133,14 @@ class FlappyCat {
         this.pipes.push({
             element: topPipe,
             passed: false,
-            x: 400
+            x: 800
         });
         this.pipes.push({
             element: bottomPipe,
             passed: false,
-            x: 400
+            x: 800
         });
-        
+        console.log('Pipe created!')
     }
 
     updatePipes() {
@@ -160,11 +161,15 @@ class FlappyCat {
                 this.score++;
                 this.scoreElement.textContent = `Score: ${this.score}`;
             }
+            
         }
     }
 
     startPipeGeneration() {
-        setInterval(() => {
+        if(this.pipeGenerator){
+            clearInterval(this.pipeGenerator);
+        }
+        this.pipeGenerator = setInterval(() => {
             if (this.gameStarted && !this.gameOver) {
                 this.createPipe();
             }
@@ -172,8 +177,21 @@ class FlappyCat {
     }
 
     endGame() {
-        this.gameOver = true;
+        if(sessionStorage.maxScore){
+           if(Number(sessionStorage.maxScore) < this.score){
+            sessionStorage.maxScore = this.score
+            this.maxScoreElement.innerHTML = 'Max Score: ' + Number(sessionStorage.maxScore);
+           } 
+        }else
+        {
+            sessionStorage.maxScore = 0;
+        }
+        this.gameOver = true;   
         this.gameOverMessage.classList.remove('hidden');
+        if (this.pipeGenerator) {
+            clearInterval(this.pipeGenerator);
+            this.pipeGenerator = null;
+        }
     }
 
     gameLoop() {

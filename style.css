@@ -15,7 +15,7 @@ body {
 
 .container {
     position: relative;
-    width: 400px;
+    width: 800px;
     height: 600px;
 }
 
@@ -75,6 +75,15 @@ body {
 #score {
     position: absolute;
     top: 20px;
+    left: 20px;
+    font-size: 24px;
+    color: white;
+    z-index: 10;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+#maxScore {
+    position: absolute;
+    top: 50px;
     left: 20px;
     font-size: 24px;
     color: white;
