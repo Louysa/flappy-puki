@@ -15,8 +15,8 @@ body {
 
 .container {
     position: relative;
-    width: 800px;
-    height: 600px;
+    width: 1600px;
+    height: 800px;
 }
 
 .game-container {
@@ -45,14 +45,14 @@ body {
 
 .cat {
     position: absolute;
-    width: 50px;
-    height: 50px;
-    background-image: url('assets/puki.png');
+    width: 100px;
+    height: 100px;
+    background-image: url('assets/puki4.png');
     background-size: contain;
     background-repeat: no-repeat;
     left: 50px;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(0);
 }
 
 .pipe {

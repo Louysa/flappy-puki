@@ -12,14 +12,25 @@ class FlappyCat {
         this.velocity = 0;
         this.position = 300;
         this.score = 0;
+        if(!sessionStorage.maxScore){
+            sessionStorage.maxScore = 0;            
+        }
         this.maxScore = sessionStorage.maxScore
         this.gameStarted = false;
         this.gameOver = false;
+
         this.pipes = [];
-        this.pipeGap = 150;
-        this.pipeWidth = 60;
-        this.pipeInterval = 2000;
+        this.pipeSpeed = 2;
+        
+        this.initialPipeInterval = 2500;
+        this.pipeInterval        = 2500;
+        this.initialPipeGap      = 250;
+        this.pipeGap             = 250;
+        this.pipeWidth           = 60;
+        
         this.pipeGenerator = null;
+        this.spinAngle = 0;
+
         this.bindEvents();
     }
 
@@ -48,12 +59,18 @@ class FlappyCat {
         this.position = 300;
         this.velocity = 0;
         this.score = 0;
-        this.gameOver = false;
+        this.gameOver = false;  
+        
+        this.pipeSpeed    = 2;
+        this.pipeInterval = this.initialPipeInterval;
+        this.pipeGap      = this.initialPipeGap;
+
+        clearInterval(this.pipeGenerator);
+        this.pipeGenerator = null;
         this.pipes = [];
-        const pipes = document.getElementsByClassName('pipe');
-        while(pipes.length>0){
-            pipes[0].parentNode.removeChild(pipes[0]);
-        }
+        document
+                .querySelectorAll('.pipe')
+                .forEach(p => p.remove());
         this.scoreElement.textContent = `Score: ${this.score}`;
         this.gameOverMessage.classList.add('hidden');
         this.startGame();
@@ -69,6 +86,9 @@ class FlappyCat {
         this.velocity += this.gravity;
         this.position += this.velocity;
         this.cat.style.top = `${this.position}px`;
+      
+        this.spinAngle = (this.spinAngle + 0.5) % 360;
+        this.cat.style.transform = `rotate(${this.spinAngle}deg)`;
 
         if (this.checkCollision()) {
             this.endGame();
@@ -77,7 +97,7 @@ class FlappyCat {
 
 
         this.updatePipes();
-    }
+    }   
 
     checkCollision() {
         const catRect = this.cat.getBoundingClientRect();
@@ -115,13 +135,13 @@ class FlappyCat {
         const topPipe = document.createElement('div');
         topPipe.className = 'pipe top-pipe';
         topPipe.style.height = `${height}px`;
-        topPipe.style.left = '800px';
+        topPipe.style.left = '1600px';
         topPipe.style.top = '0px';
 
         const bottomPipe = document.createElement('div');
         bottomPipe.className = 'pipe bottom-pipe';
         bottomPipe.style.height = `${containerHeight - height - this.pipeGap}px`;
-        bottomPipe.style.left = '800px';
+        bottomPipe.style.left = '1600px';
         bottomPipe.style.bottom = '0px';
 
 
@@ -133,42 +153,44 @@ class FlappyCat {
         this.pipes.push({
             element: topPipe,
             passed: false,
-            x: 800
+            x: 1600
         });
         this.pipes.push({
             element: bottomPipe,
             passed: false,
-            x: 800
+            x: 1600
         });
-        console.log('Pipe created!')
+        
     }
 
     updatePipes() {
         for (let i = this.pipes.length - 1; i >= 0; i--) {
             const pipe = this.pipes[i];
-            pipe.x -= 2;
+            pipe.x -= this.pipeSpeed;
             pipe.element.style.left = `${pipe.x}px`;
 
             
             if (pipe.x < -this.pipeWidth) {
                 pipe.element.remove();
                 this.pipes.splice(i, 1);
+                continue;
             }
 
-            // Score points
+
             if (!pipe.passed && pipe.x < 50 && i % 2 === 0) {
                 pipe.passed = true;
                 this.score++;
                 this.scoreElement.textContent = `Score: ${this.score}`;
+
+                this.adjustDifficulty();    
             }
             
         }
     }
 
     startPipeGeneration() {
-        if(this.pipeGenerator){
-            clearInterval(this.pipeGenerator);
-        }
+       clearInterval(this.pipeGenerator);
+       
         this.pipeGenerator = setInterval(() => {
             if (this.gameStarted && !this.gameOver) {
                 this.createPipe();
@@ -198,6 +220,19 @@ class FlappyCat {
         this.update();
         if (!this.gameOver) {
             requestAnimationFrame(() => this.gameLoop());
+        }
+    }
+
+    adjustDifficulty(){
+        this.pipeSpeed = this.pipeSpeed + this.score * 0.1;
+
+        this.pipeInterval = Math.max(800,this.initialPipeInterval - this.score * 100);
+
+        this.pipeGap = Math.max(120,this.initialPipeGap - this.score * 10);
+
+        if(this.pipeGenerator){
+            clearInterval(this.pipeGenerator);
+            this.startPipeGeneration();
         }
     }
 }
